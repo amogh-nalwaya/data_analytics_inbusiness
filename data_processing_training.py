@@ -109,10 +109,13 @@ if __name__ == "__main__":
     df_transactions['CUSTOMER_PAID'] = df_transactions['SALES_VALUE'] + df_transactions['COUPON_DISC']
     df_transactions['WEEKS_TO_MAILER'] = df_transactions['WEEK_NO_x'] - df_transactions['WEEK_NO_y']
     df_transactions['WEEKS_TO_MAILER'].fillna(1000, inplace=True)
-    df_transactions.sort_values(['household_key', 'BASKET_ID', 'PRODUCT_ID', 'WEEKS_TO_MAILER'], inplace=True)
+    #df_transactions.sort_values(['household_key', 'BASKET_ID', 'WEEKS_TO_MAILER'], inplace=True)
+    df_transactions = df_transactions.loc[df_transactions.groupby(['household_key', 'BASKET_ID', 'WEEKS_TO_MAILER'], sort=False)['WEEKS_TO_MAILER'].idxmin()]
 
-    df_transactions = df_transactions.drop_duplicates(['household_key', 'BASKET_ID', 'PRODUCT_ID'], keep="first")
+    #df_transactions = df_transactions.drop_duplicates(['household_key', 'BASKET_ID', 'PRODUCT_ID'], keep="first")
     df_transactions.loc[df_transactions['WEEKS_TO_MAILER'] < 0, 'WEEKS_TO_MAILER'] = 1000
 
     df_demographic = pd.read_csv('hh_demographic.csv', dtype={'household_key': str})
     df_grouped_basket = get_grouped_basket(product_list, df_transactions, df_demographic)
+    file = "training.csv"
+    df_grouped_basket.to_csv(file, index=False)
