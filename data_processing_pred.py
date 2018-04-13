@@ -6,6 +6,14 @@ import math
 import operator
 import os
 
+# Adding relative path to python path
+abs_path = os.path.abspath(__file__)
+file_dir = os.path.dirname(abs_path)
+#parent_dir = os.path.dirname(file_dir)
+sys.path.append(file_dir)
+
+from feat_eng import *
+
 os.chdir("/home/miller/Documents/GT/Biz Anal/Projy/Data/CSV/")
 
 pred_set_indicator = 9999999 # Will serve as indicator for rows to be in pred set 
@@ -14,15 +22,16 @@ def get_grouped_basket(product_list, trans_merge, df_demographic):
 
     df_grouped_basket = trans_merge.groupby(['household_key', 'BASKET_ID', 'DAY'])
     
+    # Getting purchase counts
     df_grouped_basket_copy = df_grouped_basket.size().reset_index()
+    df_grouped_basket_copy.rename(columns={0:'PROD_PURCHASE_COUNT'}, inplace=True)
     
-    # Getting counts
+    # Calculating label
     df_grouped_basket = df_grouped_basket.apply(
             lambda x : 1 if len(set(x.PRODUCT_ID.tolist()) & set(product_list)) > 0 else 0
         ).reset_index().rename(columns={0:"label"})
 
-    df_grouped_basket_copy.columns = ['household_key', 'BASKET_ID', 'DAY', 'PROD_PURCHASE_COUNT']
-
+    # Getting sum of purchases
     df_grouped_basket_2 = trans_merge.groupby(['household_key', 'BASKET_ID']).sum().reset_index()
     df_grouped_basket_2.drop(['RETAIL_DISC', 'TRANS_TIME', 'COUPON_MATCH_DISC', 'START_DAY', 'END_DAY'], axis=1, inplace=True)
 
@@ -37,12 +46,6 @@ def get_grouped_basket(product_list, trans_merge, df_demographic):
      
     df_grouped_basket_merge = df_grouped_basket_merge.merge(df_demographic, on="household_key", how = "left").reset_index(drop=True)
     
-    print("===============================================================")
-
-    print(df_grouped_basket_merge.head(10))
-
-    print("===============================================================")
-
     return df_grouped_basket_merge
 
 def get_products_for_coupon(coupon_Id, df_coupon):
@@ -88,16 +91,9 @@ def create_dummy_df(hh_start_dates):
 
 def get_transactions_for_hh(df_transactions, hh_start_dates):
     trans_merge = df_transactions.merge(hh_start_dates, on='household_key', how='left')
-    print(trans_merge.head(20))
+#    trans_merge["START_DAY"].fillna(10000, inplace = True) # New
     return trans_merge[trans_merge['DAY'].astype(float) <= trans_merge['START_DAY']]
 
-def add_week_to_transactions(df_transactions):
-    df_transactions['WEEK_NO'] = df_transactions.apply(lambda row: math.ceil(float(row['DAY'])/ 7), axis=1)
-    return df_transactions
-
-def merge_with_causal(causal_data, df_transactions):
-    df_trans_merge = df_transactions.merge(causal_data, on=['STORE_ID', 'PRODUCT_ID'], how="left")
-    return df_trans_merge
 
 if __name__ == "__main__":
     coupon_Id = "51800000050"
@@ -119,23 +115,10 @@ if __name__ == "__main__":
     
     df_transactions = df_transactions.append(dummy_df) # Appending dummy_df aka future prediction set
     
-#    df_causal = pd.read_csv('causal_data.csv', dtype={'PRODUCT_ID': str, 'STORE_ID': int, 'WEEK_NO': float, 'display': str})
-
     df_transactions = get_transactions_for_hh(df_transactions, hh_start_dates)
-    
-#    df_transactions = add_week_to_transactions(trans_merge)
-#    del trans_merge
-#    df_transactions = merge_with_causal(df_causal, df_transactions)
-#    del df_causal
-    
+        
     df_transactions['CUSTOMER_PAID'] = df_transactions['SALES_VALUE'] + df_transactions['COUPON_DISC']
     
-#    df_transactions['WEEKS_TO_MAILER'] = df_transactions['WEEK_NO_x'] - df_transactions['WEEK_NO_y']
-#    df_transactions['WEEKS_TO_MAILER'].fillna(1000, inplace=True)
-#    df_transactions.sort_values(['household_key', 'BASKET_ID', 'WEEKS_TO_MAILER'], inplace=True)
-#    df_transactions = df_transactions.drop_duplicates(['household_key', 'BASKET_ID', 'PRODUCT_ID'], keep="first")
-#    df_transactions.loc[df_transactions['WEEKS_TO_MAILER'] < 0, 'WEEKS_TO_MAILER'] = 1000
-
     product_list = get_products_for_coupon(coupon_Id, df_coupon)
     
     df_demographic = pd.read_csv('hh_demographic.csv', dtype={'household_key': str})
@@ -149,6 +132,33 @@ if __name__ == "__main__":
     df_grouped_basket["DAY"] = df_grouped_basket["DAY"].astype(float)
     
     df_grouped_basket.sort_values(["household_key", "DAY"], inplace=True)
+    
+    print("Feature engineering prediction set")
+    
+    # Feature engineering
+    exp_stats = ['label', 'PROD_PURCHASE_COUNT', "QUANTITY"]
 
-    df_grouped_basket.to_csv("pred_set_processed_sorted.csv")
+    df_eng_feats_pred = feat_eng(df_grouped_basket, exp_stats, exp_stats)
+    
+    df_eng_feats_pred = extract_pred_set(df_eng_feats)
+    
+    print("Writing pred set with eng feats to csv")
+    
+    df_grouped_basket.to_csv("pred_set_feat_eng_{}.csv".format(coupon_Id), index=False)
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 
