@@ -25,10 +25,15 @@ def get_grouped_basket(product_list, trans_merge, df_demographic):
     df_grouped_basket_2.drop(['RETAIL_DISC', 'TRANS_TIME', 'COUPON_MATCH_DISC', 'START_DAY', 'END_DAY', 'WEEK_NO_x', 'WEEK_NO_y'], axis=1, inplace=True)
 
     df_grouped_basket_merge = df_grouped_basket_2.merge(df_grouped_basket, on=["household_key", "BASKET_ID"]).reset_index(drop=True)
+    del df_grouped_basket
+    del df_grouped_basket_2
 
     df_grouped_basket_merge = df_grouped_basket_merge.merge(df_grouped_basket_copy, on=["household_key", "BASKET_ID"]).reset_index(drop=True)
+    del df_grouped_basket_copy
 
     df_grouped_basket_merge = df_grouped_basket_merge.merge(df_grouped_basket_mailer, on=["household_key", "BASKET_ID"]).reset_index(drop=True)
+
+    del df_grouped_basket_mailer
 
     df_grouped_basket_merge = df_grouped_basket_merge.drop(['WEEKS_TO_MAILER_x', 'DAY_x', 'STORE_ID_y'], axis=1)
 
@@ -79,11 +84,14 @@ if __name__ == "__main__":
 
     df_coupon = pd.read_csv('coupon.csv', dtype={'COUPON_UPC': str, 'CAMPAIGN': str, 'PRODUCT_ID': str})
     campaigns = get_campaigns_for_coupon(coupon_Id, df_coupon)
+    product_list = get_products_for_coupon(coupon_Id, df_coupon)
+    del df_coupon
 
     df_campaign_table = pd.read_csv('campaign_table.csv', dtype={'household_key': str, 'CAMPAIGN': str})
     df_campaign_desc = pd.read_csv('campaign_desc.csv', dtype={'CAMPAIGN': str})
 
     hh_start_dates = get_households_for_campaigns(campaigns, df_campaign_table, df_campaign_desc)
+    del df_campaign_table
     hh_start_dates.drop(columns=['DESCRIPTION_x', 'DESCRIPTION_y'], inplace=True)
 
     df_transactions = pd.read_csv('transaction_data.csv', dtype={'BASKET_ID': str, 'PRODUCT_ID': str, 'household_key': str, 'DAY': str})
@@ -93,7 +101,11 @@ if __name__ == "__main__":
 
     df_transactions = add_week_to_transactions(trans_merge)
 
+    del trans_merge
+
     df_transactions = merge_with_causal(df_causal, df_transactions)
+    del df_causal
+
     df_transactions['CUSTOMER_PAID'] = df_transactions['SALES_VALUE'] + df_transactions['COUPON_DISC']
     df_transactions['WEEKS_TO_MAILER'] = df_transactions['WEEK_NO_x'] - df_transactions['WEEK_NO_y']
     df_transactions['WEEKS_TO_MAILER'].fillna(1000, inplace=True)
@@ -102,6 +114,5 @@ if __name__ == "__main__":
     df_transactions = df_transactions.drop_duplicates(['household_key', 'BASKET_ID', 'PRODUCT_ID'], keep="first")
     df_transactions.loc[df_transactions['WEEKS_TO_MAILER'] < 0, 'WEEKS_TO_MAILER'] = 1000
 
-    product_list = get_products_for_coupon(coupon_Id, df_coupon)
     df_demographic = pd.read_csv('hh_demographic.csv', dtype={'household_key': str})
     df_grouped_basket = get_grouped_basket(product_list, df_transactions, df_demographic)
