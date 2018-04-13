@@ -13,7 +13,10 @@ pred_set_indicator = 9999999 # Will serve as indicator for rows to be in pred se
 def get_grouped_basket(product_list, trans_merge, df_demographic):
 
     df_grouped_basket = trans_merge.groupby(['household_key', 'BASKET_ID', 'DAY'])
+    
     df_grouped_basket_copy = df_grouped_basket.size().reset_index()
+    
+    # Getting counts
     df_grouped_basket = df_grouped_basket.apply(
             lambda x : 1 if len(set(x.PRODUCT_ID.tolist()) & set(product_list)) > 0 else 0
         ).reset_index().rename(columns={0:"label"})
