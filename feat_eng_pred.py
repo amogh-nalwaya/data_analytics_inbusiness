@@ -160,6 +160,8 @@ def extract_pred_set(df):
     
     present_dummy_cols = [col for col in dummy_cols if col in df.columns]
     
+    print(present_dummy_cols)
+    
     df = pd.get_dummies(df, columns = present_dummy_cols)
     
     df.drop(['BASKET_ID', 'PROD_PURCHASE_COUNT', 'COUPON_DISC', 'CUSTOMER_PAID', 'QUANTITY',

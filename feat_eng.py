@@ -43,6 +43,8 @@ def feat_eng(all_games, expectation_stats, cumulative_stats):
     player_career_lengths = [(row_num - new_player_row_nums[index-1])  for index, row_num in enumerate(new_player_row_nums)][1:]
     max_games_played = int(max(player_career_lengths))
         
+    all_games["DAY"] = all_games["DAY"].astype(float) # Casting to float
+    
     all_games.sort_values(['household_key','DAY'], inplace=True)
     all_games.reset_index(inplace=True, drop=True)   
 

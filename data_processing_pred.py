@@ -6,13 +6,17 @@ import math
 import operator
 import os
 
+from feat_eng import *
+from modeling import *
+
 # Adding relative path to python path
 abs_path = os.path.abspath(__file__)
 file_dir = os.path.dirname(abs_path)
-#parent_dir = os.path.dirname(file_dir)
 sys.path.append(file_dir)
 
-from feat_eng import *
+sys.path.append("/home/miller/Documents/GT/Biz Anal/Projy/Code/data_analytics_inbusiness/")
+
+
 
 os.chdir("/home/miller/Documents/GT/Biz Anal/Projy/Data/CSV/")
 
@@ -140,20 +144,17 @@ if __name__ == "__main__":
 
     df_eng_feats_pred = feat_eng(df_grouped_basket, exp_stats, exp_stats)
     
-    df_eng_feats_pred = extract_pred_set(df_eng_feats)
+    df_eng_feats_pred = extract_pred_set(df_eng_feats_pred)
     
     print("Writing pred set with eng feats to csv")
     
-    df_grouped_basket.to_csv("pred_set_feat_eng_{}.csv".format(coupon_Id), index=False)
+    df_eng_feats_pred.to_csv("pred_set_feat_eng_{}.csv".format(coupon_Id), index=False)
     
+    X,y = split_feats_label(df_eng_feats_pred)
     
-    
-    
-    
-    
-    
-    
-    
+    trained_lr = train_mod(X,y,3)
+
+
     
     
     
