@@ -63,7 +63,7 @@ def get_households_for_campaigns(campaigns, df_campaign_table, df_campaign_desc)
 
 def get_transactions_for_hh(df_transactions, hh_start_dates):
     trans_merge = df_transactions.merge(hh_start_dates, on='household_key', how='left')
-    print(trans_merge.head(20))
+    trans_merge['START_DAY'].fillna(10000, inplace=True)
     return trans_merge[trans_merge['DAY'].astype(float) < trans_merge['START_DAY']]
 
 def add_week_to_transactions(df_transactions):
@@ -105,5 +105,3 @@ if __name__ == "__main__":
     product_list = get_products_for_coupon(coupon_Id, df_coupon)
     df_demographic = pd.read_csv('hh_demographic.csv', dtype={'household_key': str})
     df_grouped_basket = get_grouped_basket(product_list, df_transactions, df_demographic)
-
-
