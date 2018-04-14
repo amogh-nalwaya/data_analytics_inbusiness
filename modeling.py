@@ -24,7 +24,7 @@ def split_feats_label(data):
     
     Y = np.array(data.loc[:,'label'])
     
-    return X,Y
+    return X,Y, data['household_key']
 
 def train_mod(X,Y,k=5):
         
