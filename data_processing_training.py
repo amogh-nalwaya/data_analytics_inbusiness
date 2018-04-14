@@ -5,6 +5,14 @@ from collections import Counter, defaultdict
 import csv
 import math
 import operator
+import os
+from feat_eng import *
+from modeling import *
+
+# abs_path = os.path.abspath(__file__)
+# file_dir = os.path.dirname(abs_path)
+# #parent_dir = os.path.dirname(file_dir)
+# sys.path.append(file_dir)
 
 def group_basket_stats(product_list, df_transactions, df_demographic):
 
@@ -36,7 +44,7 @@ def get_grouped_basket(df_transactions):
 
 def get_grouped_basket_count(df_grouped_basket):
     df_grouped_basket_count = df_grouped_basket.size().reset_index()
-    df_grouped_basket_count.columns = ['household_key', 'BASKET_ID', 'DAY', 'PROD_PURCHASE_COUNT']
+    df_grouped_basket_count = df_grouped_basket_count.rename(columns={0: 'PROD_PURCHASE_COUNT'})
     return df_grouped_basket_count
 
 def apply_label_grouped_basket(df_grouped_basket):
@@ -58,8 +66,7 @@ def merging_sum_count_labels(df_grouped_basket, df_grouped_basket_count, df_grou
     df_grouped_basket_merge = df_grouped_basket_merge.merge(df_grouped_basket_count, on=["household_key", "BASKET_ID"]).reset_index(drop=True)
     del df_grouped_basket_count
 
-    df_grouped_basket_merge = df_grouped_basket_merge.drop(['DAY_x'], axis=1, errors="ignore")
-    df_grouped_basket_merge.rename(columns={'DAY_y': 'DAY'}, inplace=True)
+    df_grouped_basket_merge = df_grouped_basket_merge.drop(['DAY_x', 'DAY_y'], axis=1)
 
     return df_grouped_basket_merge
 
@@ -82,14 +89,6 @@ def get_transactions_for_hh(df_transactions, hh_start_dates):
     trans_merge = df_transactions.merge(hh_start_dates, on='household_key', how='left')
     trans_merge['START_DAY'].fillna(10000, inplace=True)
     return trans_merge[trans_merge['DAY'].astype(float) < trans_merge['START_DAY']]
-
-def add_week_to_transactions(df_transactions):
-    df_transactions['WEEK_NO'] = df_transactions.apply(lambda row: math.ceil(float(row['DAY'])/ 7), axis=1)
-    return df_transactions
-
-def merge_with_causal(causal_data, df_transactions):
-    df_trans_merge = df_transactions.merge(causal_data, on=['STORE_ID', 'PRODUCT_ID'], how="left")
-    return df_trans_merge
 
 if __name__ == "__main__":
     coupon_Id = "51800000050"
@@ -126,6 +125,19 @@ if __name__ == "__main__":
     df_demographic = pd.read_csv('hh_demographic.csv', dtype={'household_key': str})
     df_grouped_basket = group_basket_stats(product_list, df_transactions, df_demographic)
 
+    print("Feature engineering...")
+    exp_stats = ['label', 'PROD_PURCHASE_COUNT', 'QUANTITY']
+
+    df_eng_feat_train = feat_eng(df_grouped_basket, exp_stats, exp_stats)
+
+    df_eng_feat_train = prep_train_set(df_eng_feat_train)
+
     #Optional code to write output to a file
-    #file = "training.csv"
-    #df_grouped_basket.to_csv(file, index=False)
+    df_eng_feat_train.to_csv("train_set_feat_eng_{}.csv".format(coupon_Id), index=False)
+    print("length of feat eng: "+str(len(df_eng_feat_train)))
+
+    X, y = split_feats_label(df_eng_feat_train)
+
+    #train the model
+    print("Training the model...")
+    trained_lr = train_mod(X, y, 3)
