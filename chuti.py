@@ -98,6 +98,17 @@ def get_transactions_for_hh(df_transactions, hh_start_dates):
     trans_merge['START_DAY'].fillna(10000, inplace=True)
     return trans_merge[trans_merge['DAY'].astype(float) < trans_merge['START_DAY']]
 
+def get_transactions_for_hh_within(df_transactions, hh_start_dates, product_list):
+    trans_merge = df_transactions.merge(hh_start_dates, on='household_key', how='left')
+    trans_merge['START_DAY'].fillna(10000, inplace=True)
+    trans_merge['END_DAY'].fillna(0, inplace=True)
+    trans_filtered = trans_merge[(trans_merge['DAY'].astype(float) >= trans_merge['START_DAY']) & (
+                trans_merge['DAY'].astype(float) <= trans_merge['END_DAY'])]
+    trans_filtered['label'] = 0
+    trans_filtered['label'] = trans_filtered.apply(lambda row: 1 if row['PRODUCT_ID'] in product_list else 0,
+                                                   axis=1)
+    return trans_filtered[['household_key', 'PRODUCT_ID', 'CAMPAIGN']][trans_filtered['label'] == 1], list(trans_filtered['household_key'].unique())
+
 if __name__ == "__main__":
     
     coupon_Id = "10000085362"
