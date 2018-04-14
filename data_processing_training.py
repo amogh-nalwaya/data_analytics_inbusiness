@@ -8,6 +8,7 @@ import operator
 import os
 from feat_eng import *
 from modeling import *
+from sklearn.preprocessing import StandardScaler
 
 # abs_path = os.path.abspath(__file__)
 # file_dir = os.path.dirname(abs_path)
@@ -137,6 +138,9 @@ if __name__ == "__main__":
     print("length of feat eng: "+str(len(df_eng_feat_train)))
 
     X, y = split_feats_label(df_eng_feat_train)
+
+    scaler = StandardScaler()
+    X = scaler.fit_transform(X)
 
     #train the model
     print("Training the model...")
