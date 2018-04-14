@@ -136,7 +136,9 @@ if __name__ == "__main__":
     print("Reading in transactions... it's huge")
     df_transactions = pd.read_csv('transaction_data.csv', dtype={'BASKET_ID': str, 'PRODUCT_ID': str, 'household_key': str, 'DAY': str})
     print("lenght of all transactions: "+str(len(df_transactions)))
-
+    
+    transactions_within_campaign, households_campaign_list = get_transactions_for_hh_within(df_transactions, hh_start_dates, product_list)
+    
     print("filtering transactions for households ")
     df_transactions = get_transactions_for_hh(df_transactions, hh_start_dates)
     df_transactions['CUSTOMER_PAID'] = df_transactions['SALES_VALUE'] + df_transactions['COUPON_DISC']
@@ -158,7 +160,7 @@ if __name__ == "__main__":
 #    df_eng_feat_train.to_csv("train_set_feat_eng_{}.csv".format(coupon_Id), index=False)
     print("length of feat eng: "+str(len(df_eng_feats_train)))
 
-    X, y = split_feats_label(df_eng_feats_train)
+    X, y, _ = split_feats_label(df_eng_feats_train)
         
     scaler = StandardScaler()
     features_std = scaler.fit_transform(X) # Normaliizing features
@@ -176,11 +178,15 @@ if __name__ == "__main__":
     
 #    set(df_eng_feats_train.columns) - set(df_eng_feats_pred.columns)
     
-    X,y = split_feats_label(df_eng_feats_pred)
+    X, y, pred_household_key = split_feats_label(df_eng_feats_pred)
     
     pred_features_std = scaler.transform(pred_features)
     
     pred_set_predictions = trained_mlp.predict(pred_features_std)
+    
+    pred_df = pd.DataFrame({'household_key': pred_household_key, 'pred': pred_set_predictions})
+    
+    pred_df['label'] = pred_df.apply(lambda row: 1 if row['household_key'] in households_campaign_list else 0, axis=1)
 
 #df_eng_feats_train["AGE_DESC"]
 
