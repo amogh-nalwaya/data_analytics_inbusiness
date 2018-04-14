@@ -41,6 +41,8 @@ def train_mod(X,Y,k=5):
         auc_list = []
     
         for train_index, test_index in kf:
+            
+            print(len(train_index))
                     
             # Separating train/test sets
             x_train = X[np.array(train_index)]
@@ -89,3 +91,6 @@ if __name__ == "__main__":
     lr = LogisticRegression()
     lr.fit(X_train, Y_train)
     Y_pred = lr.predict(X_train)
+    
+    
+

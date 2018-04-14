@@ -50,11 +50,7 @@ def feat_eng(all_games, expectation_stats, cumulative_stats):
 
     ###############################################################
     ### Initializing arrays, lists to hold intermediate computation    
-    
-    ### Creating ema/cumulative stat names ###
-#    cumulative_stats = ['purchases_in_list', 'all_purchases']
-#    expectation_stats = ["purchases_in_list", "all_purchases", "days_since_last_trip"] # money, days since last trip
-                         
+                 
     expectation_stats.append('days_since_last_trip')
                          
     # Initializing static retain weights in exponential decaying average --> lower wt = more dependent on recent values
@@ -158,7 +154,7 @@ def extract_pred_set(df):
     
     df.reset_index(inplace=True, drop=True)
     
-    dummy_cols = ["HH_COMP_DESC", 'HOMEOWNER_DESC', 'HOUSEHOLD_SIZE_DESC', 'INCOME_DESC','KID_CATEGORY_DESC', 'MARITAL_STATUS_CODE']
+    dummy_cols = ["HH_COMP_DESC", 'HOMEOWNER_DESC', 'HOUSEHOLD_SIZE_DESC', 'INCOME_DESC','KID_CATEGORY_DESC', 'MARITAL_STATUS_CODE', 'AGE_DESC']
     
     present_dummy_cols = [col for col in dummy_cols if col in df.columns]
     
@@ -178,7 +174,7 @@ def prep_train_set(df):
         
     df.reset_index(inplace=True, drop=True)
     
-    dummy_cols = ["HH_COMP_DESC", 'HOMEOWNER_DESC', 'HOUSEHOLD_SIZE_DESC', 'INCOME_DESC','KID_CATEGORY_DESC', 'MARITAL_STATUS_CODE']
+    dummy_cols = ["HH_COMP_DESC", 'HOMEOWNER_DESC', 'HOUSEHOLD_SIZE_DESC', 'INCOME_DESC','KID_CATEGORY_DESC', 'MARITAL_STATUS_CODE', 'AGE_DESC']
     
     present_dummy_cols = [col for col in dummy_cols if col in df.columns]
     
