@@ -75,7 +75,6 @@ def train_mlp(features_std, y, num_iter, init_points, max_layer_1, max_layer_2):
     
     num_nodes_1 = int(mlpBO.res['max']['max_params']['num_nodes_1'])
     num_nodes_2 = int(mlpBO.res['max']['max_params']['num_nodes_2'])
-#    num_nodes_3 = int(mlpBO.res['max']['max_params']['num_nodes_3'])
     max_iter = int(mlpBO.res['max']['max_params']['max_iter'])
     
     ### Training MLP using params learned from Bayesian Optimization ###

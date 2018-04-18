@@ -7,6 +7,8 @@ import math
 import operator
 import os
 from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import roc_auc_score
+import time
 
 sys.path.append("/home/miller/Documents/GT/Biz Anal/Projy/Code/data_analytics_inbusiness/")
 
@@ -112,8 +114,14 @@ def get_transactions_for_hh_within(df_transactions, hh_start_dates, product_list
 
 if __name__ == "__main__":
     
-#    coupon_Id = "51800000050"
-    coupon_Id = "10000085362"
+#    coupon_Id = "51800000050" # Campaign 26 is Type A, would need to remove
+#    coupon_Id = "10000085362" Cant use, Type A campaign
+
+#    coupon_Id = "10000089061" # Low probability added, usable
+
+#    coupon_Id = "57940011075" # Higher than above, still low
+
+#    coupon_Id = "51111030050" # Not usable, no one bought in campaign
 
     print("Coupon ID: " + coupon_Id)
 
@@ -151,9 +159,13 @@ if __name__ == "__main__":
 
     df_grouped_basket['demo_missing'] = np.where(df_grouped_basket['INCOME_DESC'].isnull(), 1, 0) # Creating one-hot for where demographic data is missing
     
-    print("Feature engineering...")
+    print("\nFeature engineering on train set")
+    print("Length of train set: " + str(len(df_grouped_basket)))
+    start = time.time()
     exp_stats = ['label', 'PROD_PURCHASE_COUNT', 'QUANTITY']
     df_eng_feats_train = feat_eng(df_grouped_basket, exp_stats, exp_stats)
+    end = time.time()
+    print("Time to engineer features on train set: " + str(end-start))
 
     df_eng_feats_train = prep_train_set(df_eng_feats_train)
 
@@ -165,20 +177,28 @@ if __name__ == "__main__":
         
     scaler = StandardScaler()
     features_std = scaler.fit_transform(X) # Normaliizing features
-    
 #    del X
 
     #train the model
     print("Training the model...")
-    
-    trained_mlp = train_mlp(features_std[:], y[:], 2, 1, 10, 10)
+    trained_mlp = train_mlp(features_std, y, 2, 1, 10, 10)
     
     print("\nGenerating prediction set")
-
     df_eng_feats_pred = gen_pred_set(coupon_Id)
     
     if len(set(df_eng_feats_train.columns) - set(df_eng_feats_pred.columns)) != 0: # Should be 0
-          print("Mismatched columns in pred and train set")
+          print("\nMismatched columns in pred and train set. Adding columns to pred set.\n")
+          
+          # Adding columns in train set to pred set
+          cols_in_train_not_pred = list(set(df_eng_feats_train.columns) - set(df_eng_feats_pred.columns))
+          for col in cols_in_train_not_pred:
+              df_eng_feats_pred[col]=0
+        
+          # Sort columns
+          df_eng_feats_pred.sort_index(axis = 1, inplace = True)
+                               
+          if len(set(df_eng_feats_train.columns) - set(df_eng_feats_pred.columns)) != 0: # Should be 0
+                print("\nColumns still mismatched --> column(s) in pred that were not in training set.\n")
           
     X, y, pred_household_key = split_feats_label(df_eng_feats_pred)
         
@@ -191,16 +211,56 @@ if __name__ == "__main__":
     
     pred_df['label'] = pred_df.apply(lambda row: 1 if row['household_key'] in households_campaign_list else 0, axis=1)
 
+    pred_df["prob_added"] = pred_df["label"] - pred_df["pred_soft"]
+    
+    ### Removing households who received TypeA campaigns
+    pred_df_w_camp = pred_df.merge(hh_start_dates, on = ['household_key','CAMPAIGN'], how = 'left') # Adding campaign number
+    pred_df_w_camp_type = pred_df_w_camp.merge(df_campaign_desc, on = 'CAMPAIGN', how = 'left') # Adding campaign type
+    pred_df_w_camp_type = pred_df_w_camp_type[pred_df_w_camp_type.DESCRIPTION != 'TypeA']
+        
+    mean_prob_added = pred_df['prob_added'].mean()
 
 
-### HOW TO FIND MOST COMMON PRODUCT ###
 
-#most_common_prod = 1082185
+
+
+
+
+
+
+
+# Only Type B and C
+#usable_campaigns = df_campaign_desc[df_campaign_desc.DESCRIPTION != "TypeA"].CAMPAIGN.tolist()
+
+#pred_df.pred_soft
+#
+#pred_df.pred_soft
+#
+#df_campaign_desc[df_campaign_desc.CAMPAIGN.apply(lambda x : True if x in campaigns else False)]
+#
+#hh_start_dates.head()
+#
+#usable_campaigns = df_campaign_desc[df_campaign_desc.DESCRIPTION != "TypeA"].CAMPAIGN.tolist()
+#
+#df_coupon[df_coupon.CAMPAIGN.apply(lambda x : True if x in usable_campaigns else False)]
+#
+#get_campaigns_for_coupon("51111030050", df_coupon)
+#
+#
+#df_campaign_desc[df_campaign_desc.CAMPAIGN.astype(int)==30]
+#
+#
+#### HOW TO FIND MOST COMMON PRODUCT ###
+#
+##most_common_prod = 1082185
 #
 #x = df_transactions.groupby("PRODUCT_ID").size().reset_index()
-#
+##
 #x.sort_values(0, inplace=True, ascending = False)
+##
+#x.head(100)
+##
+#df_coupon[df_coupon.PRODUCT_ID.astype(float) == 1056509 ]
 #
-#x.head()
-#
-#df_coupon[df_coupon.PRODUCT_ID.astype(float) == most_common_prod]
+#usable_campaigns
+

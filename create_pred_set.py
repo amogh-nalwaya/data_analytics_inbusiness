@@ -5,6 +5,7 @@ import csv
 import math
 import operator
 import os
+import time
 
 from feat_eng import *
 from modeling import *
@@ -133,12 +134,16 @@ def gen_pred_set(coupon_Id):
     
     df_grouped_basket.sort_values(["household_key", "DAY"], inplace=True)
     
-    print("Feature engineering prediction set")
+    print("\nFeature engineering prediction set")
     
     # Feature engineering
     exp_stats = ['label', 'PROD_PURCHASE_COUNT', "QUANTITY"]
-
+    
+    print("Length of pred set: " + str(len(df_grouped_basket)))
+    start = time.time()
     df_eng_feats_pred = feat_eng(df_grouped_basket, exp_stats, exp_stats)
+    end = time.time()
+    print("Time to engineer features on pred set: " + str(end-start))
     
     df_eng_feats_pred = extract_pred_set(df_eng_feats_pred)
         
