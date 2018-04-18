@@ -218,19 +218,19 @@ if __name__ == "__main__":
     pred_df_w_camp_type = pred_df_w_camp.merge(df_campaign_desc, on = 'CAMPAIGN', how = 'left') # Adding campaign type
     pred_df_w_camp_type = pred_df_w_camp_type[pred_df_w_camp_type.DESCRIPTION != 'TypeA']
         
-    mean_prob_added = pred_df['prob_added'].mean()
-
-
-
-
-
-
-
-
+    mean_prob_added = pred_df_w_camp_type['prob_added'].mean()
 
 
 # Only Type B and C
 #usable_campaigns = df_campaign_desc[df_campaign_desc.DESCRIPTION != "TypeA"].CAMPAIGN.tolist()
+
+
+
+
+
+
+
+
 
 #pred_df.pred_soft
 #
