@@ -71,7 +71,7 @@ def train_mlp(features_std, y, num_iter, init_points, max_layer_1, max_layer_2):
     mlpBO.maximize(init_points = init_points, n_iter=num_iter, acq = 'ucb', kappa = 3, **gp_params)
     
     print('Final Results')
-    print('MLP: %f' % mlpBO.res['max']['max_val'])
+    print('MLP Cross-Validated AUC: %f' % mlpBO.res['max']['max_val'])
     
     num_nodes_1 = int(mlpBO.res['max']['max_params']['num_nodes_1'])
     num_nodes_2 = int(mlpBO.res['max']['max_params']['num_nodes_2'])

@@ -19,7 +19,6 @@ from create_pred_set import *
 #file_dir = os.path.dirname(abs_path)
 #sys.path.append(file_dir)
 
-
 os.chdir("/home/miller/Documents/GT/Biz Anal/Projy/Data/CSV/")
 
 def group_basket_stats(product_list, df_transactions, df_demographic):
@@ -107,10 +106,13 @@ def get_transactions_for_hh_within(df_transactions, hh_start_dates, product_list
     trans_filtered['label'] = 0
     trans_filtered['label'] = trans_filtered.apply(lambda row: 1 if row['PRODUCT_ID'] in product_list else 0,
                                                    axis=1)
-    return trans_filtered[['household_key', 'PRODUCT_ID', 'CAMPAIGN']][trans_filtered['label'] == 1], list(trans_filtered[trans_filtered['label'] == 1]['household_key'].unique())
+    trans_filtered = trans_filtered[trans_filtered['label'] == 1]
+    
+    return trans_filtered[['household_key', 'PRODUCT_ID', 'CAMPAIGN']], list(trans_filtered['household_key'].unique())
 
 if __name__ == "__main__":
     
+#    coupon_Id = "51800000050"
     coupon_Id = "10000085362"
 
     print("Coupon ID: " + coupon_Id)
@@ -151,7 +153,6 @@ if __name__ == "__main__":
     
     print("Feature engineering...")
     exp_stats = ['label', 'PROD_PURCHASE_COUNT', 'QUANTITY']
-
     df_eng_feats_train = feat_eng(df_grouped_basket, exp_stats, exp_stats)
 
     df_eng_feats_train = prep_train_set(df_eng_feats_train)
@@ -170,25 +171,25 @@ if __name__ == "__main__":
     #train the model
     print("Training the model...")
     
-    trained_mlp = train_mlp(features_std[:100], y[:100], 2, 1, 10, 10)
+    trained_mlp = train_mlp(features_std[:], y[:], 2, 1, 10, 10)
     
     print("\nGenerating prediction set")
 
     df_eng_feats_pred = gen_pred_set(coupon_Id)
     
-#    set(df_eng_feats_train.columns) - set(df_eng_feats_pred.columns)
-    
+    if len(set(df_eng_feats_train.columns) - set(df_eng_feats_pred.columns)) != 0: # Should be 0
+          print("Mismatched columns in pred and train set")
+          
     X, y, pred_household_key = split_feats_label(df_eng_feats_pred)
-    
+        
     pred_features_std = scaler.transform(X)
     
-    pred_set_predictions = trained_mlp.predict(pred_features_std)
+    pred_set_pred_prob = trained_mlp.predict_proba(pred_features_std)[:,1]
+    pred_set_preds = trained_mlp.predict(pred_features_std)
     
-    pred_df = pd.DataFrame({'household_key': pred_household_key, 'pred': pred_set_predictions})
+    pred_df = pd.DataFrame({'household_key': pred_household_key, 'pred': pred_set_preds, 'pred_soft':pred_set_pred_prob})
     
     pred_df['label'] = pred_df.apply(lambda row: 1 if row['household_key'] in households_campaign_list else 0, axis=1)
-
-#df_eng_feats_train["AGE_DESC"]
 
 
 
