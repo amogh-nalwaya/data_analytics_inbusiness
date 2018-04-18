@@ -107,7 +107,7 @@ def get_transactions_for_hh_within(df_transactions, hh_start_dates, product_list
     trans_filtered['label'] = 0
     trans_filtered['label'] = trans_filtered.apply(lambda row: 1 if row['PRODUCT_ID'] in product_list else 0,
                                                    axis=1)
-    return trans_filtered[['household_key', 'PRODUCT_ID', 'CAMPAIGN']][trans_filtered['label'] == 1], list(trans_filtered['household_key'].unique())
+    return trans_filtered[['household_key', 'PRODUCT_ID', 'CAMPAIGN']][trans_filtered['label'] == 1], list(trans_filtered[trans_filtered['label'] == 1]['household_key'].unique())
 
 if __name__ == "__main__":
     
