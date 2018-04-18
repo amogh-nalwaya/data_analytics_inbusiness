@@ -180,7 +180,7 @@ if __name__ == "__main__":
     
     X, y, pred_household_key = split_feats_label(df_eng_feats_pred)
     
-    pred_features_std = scaler.transform(pred_features)
+    pred_features_std = scaler.transform(X)
     
     pred_set_predictions = trained_mlp.predict(pred_features_std)
     
