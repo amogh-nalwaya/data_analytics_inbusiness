@@ -114,7 +114,9 @@ def get_transactions_for_hh_within(df_transactions, hh_start_dates, product_list
 
 if __name__ == "__main__":
     
-#    coupon_Id = "51800000050" # Campaign 26 is Type A, would need to remove
+    coupon_id_list = ["10000089073", "57940011075", "10000089061", "51800000050"]
+    
+    coupon_Id = "51800000050" # Campaign 26 is Type A, would need to remove
 #    coupon_Id = "10000085362" Cant use, Type A campaign
 
 #    coupon_Id = "10000089061" # Low probability added, usable
@@ -122,6 +124,8 @@ if __name__ == "__main__":
 #    coupon_Id = "57940011075" # Higher than above, still low
 
 #    coupon_Id = "51111030050" # Not usable, no one bought in campaign
+
+#    coupon_Id = "10000089073" # GOOD ONE
 
     print("Coupon ID: " + coupon_Id)
 
@@ -181,7 +185,7 @@ if __name__ == "__main__":
 
     #train the model
     print("Training the model...")
-    trained_mlp = train_mlp(features_std, y, 2, 1, 10, 10)
+    trained_mlp = train_mlp(features_std, y, 3, 1, 20, 20)
     
     print("\nGenerating prediction set")
     df_eng_feats_pred = gen_pred_set(coupon_Id)
@@ -214,37 +218,34 @@ if __name__ == "__main__":
     pred_df["prob_added"] = pred_df["label"] - pred_df["pred_soft"]
     
     ### Removing households who received TypeA campaigns
-    pred_df_w_camp = pred_df.merge(hh_start_dates, on = ['household_key','CAMPAIGN'], how = 'left') # Adding campaign number
+    pred_df_w_camp = pred_df.merge(hh_start_dates, on = 'household_key', how = 'left') # Adding campaign number
     pred_df_w_camp_type = pred_df_w_camp.merge(df_campaign_desc, on = 'CAMPAIGN', how = 'left') # Adding campaign type
     pred_df_w_camp_type = pred_df_w_camp_type[pred_df_w_camp_type.DESCRIPTION != 'TypeA']
+    pred_df_w_camp_type.drop([col for col in pred_df_w_camp_type.columns if "DAY" in col], errors='ignore', axis=1, inplace=True)
         
     mean_prob_added = pred_df_w_camp_type['prob_added'].mean()
 
 
+#pred_df_w_camp_type[pred_df_w_camp_type.CAMPAIGN == '12']
+#pred_df_w_camp[pred_df_w_camp.CAMPAIGN == '26']
+
 # Only Type B and C
 #usable_campaigns = df_campaign_desc[df_campaign_desc.DESCRIPTION != "TypeA"].CAMPAIGN.tolist()
 
+usable_campaigns
 
+pred_df_w_camp_type.head()
 
+df_eng_feats_train.head()[['WEEK_NO','DAY']]
 
-
-
-
-
-
-#pred_df.pred_soft
 #
-#pred_df.pred_soft
+df_campaign_desc[df_campaign_desc.CAMPAIGN.apply(lambda x : True if x in campaigns else False)]
 #
-#df_campaign_desc[df_campaign_desc.CAMPAIGN.apply(lambda x : True if x in campaigns else False)]
+hh_start_dates.head()
 #
-#hh_start_dates.head()
+df_coupon[df_coupon.CAMPAIGN.apply(lambda x : True if x in usable_campaigns else False)]
 #
-#usable_campaigns = df_campaign_desc[df_campaign_desc.DESCRIPTION != "TypeA"].CAMPAIGN.tolist()
-#
-#df_coupon[df_coupon.CAMPAIGN.apply(lambda x : True if x in usable_campaigns else False)]
-#
-#get_campaigns_for_coupon("51111030050", df_coupon)
+get_campaigns_for_coupon("10000089073", df_coupon)
 #
 #
 #df_campaign_desc[df_campaign_desc.CAMPAIGN.astype(int)==30]
@@ -254,13 +255,20 @@ if __name__ == "__main__":
 #
 ##most_common_prod = 1082185
 #
-#x = df_transactions.groupby("PRODUCT_ID").size().reset_index()
+x = df_transactions.groupby("PRODUCT_ID").size().reset_index()
 ##
-#x.sort_values(0, inplace=True, ascending = False)
+x.sort_values(0, inplace=True, ascending = False)
 ##
-#x.head(100)
-##
-#df_coupon[df_coupon.PRODUCT_ID.astype(float) == 1056509 ]
+z = x.head(200)
+z.reset_index(inplace=True, drop=True)
+
+z.loc[i,'PRODUCT_ID']
+
+z.head()
+
+for i in range(200):
+    print(df_coupon[df_coupon.PRODUCT_ID== z.loc[i,'PRODUCT_ID']])
+    time.sleep(1)
 #
 #usable_campaigns
 
