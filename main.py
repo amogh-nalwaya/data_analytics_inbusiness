@@ -202,6 +202,11 @@ if __name__ == "__main__":
 
     pred_df["prob_added"] = pred_df["label"] - pred_df["pred_soft"]
     
+    try:
+        pred_df.drop(['CAMPAIGN', 'DESCRIPTION'], inplace=True, axis=1)
+    except ValueError:
+        pass
+    
     ### Removing households who received TypeA campaigns
     pred_df_w_camp = pred_df.merge(hh_start_dates, on = 'household_key', how = 'left') # Adding campaign number
     pred_df_w_camp_type = pred_df_w_camp.merge(df_campaign_desc, on = 'CAMPAIGN', how = 'left') # Adding campaign type
@@ -209,6 +214,75 @@ if __name__ == "__main__":
     pred_df_w_camp_type.drop([col for col in pred_df_w_camp_type.columns if "DAY" in col], errors='ignore', axis=1, inplace=True)
         
     mean_prob_added = pred_df_w_camp_type['prob_added'].mean()
+
+    coupon_demographics = pred_df_w_camp_type.merge(df_demographic, on='household_key', how='inner')
+
+    demographic_columns = coupon_demographics.columns[8:]
+
+    for i in demographic_columns:
+
+        counter = coupon_demographics.groupby([i]).size().reset_index().rename(columns={0: 'count'})
+
+        coupon_demographic = coupon_demographics.groupby([i]).mean().reset_index()
+
+        coupon_demographic[i] = coupon_demographic[i].astype('str')
+
+        data = [go.Bar(
+            x=coupon_demographic[i],
+            y=coupon_demographic['prob_added'],
+            text=counter['count'],
+            textposition='auto',
+            textfont=dict(
+                family='sans serif',
+                size=18,
+                color='#000000',
+
+            ),
+            marker=dict(
+                color='rgb(158,202,225)',
+                line=dict(
+                    color='rgb(8,48,107)',
+                    width=1.5),
+            ),
+            opacity=0.6
+        )]
+
+        layout = go.Layout(
+            title='Mean Purchase Probability Added Across ' + i + ' Groups',
+            titlefont=dict(
+                size=26
+            ),
+            xaxis=dict(
+                title=i,
+                categoryorder="array",
+                categoryarray=coupon_demographic[i],
+                titlefont=dict(
+                    family='sans serif',
+                    size=22,
+                    color='#000000',
+                ),
+                tickfont=dict(
+                    family='sans serif',
+                    size=18,
+                    color='black'
+                ),
+            ),
+            yaxis=dict(
+                title='Mean Purchase Probability Added',
+                titlefont=dict(
+                    family='sans serif',
+                    size=22,
+                    color='#000000'
+                ),
+                tickfont=dict(
+                    family='sans serif',
+                    size=18,
+                    color='black'
+                ),
+            ),
+        )
+        fig = go.Figure(data=data, layout=layout)
+        py.offline.plot(fig, filename=i + '.html')
 
 
 
