@@ -10,7 +10,9 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import roc_auc_score
 import time
 
-sys.path.append("/home/miller/Documents/GT/Biz Anal/Projy/Code/data_analytics_inbusiness/")
+abs_path = os.path.abspath(__file__)
+file_dir = os.path.dirname(abs_path)
+sys.path.append(file_dir)
 
 from feat_eng import *
 from modeling import *
@@ -18,11 +20,7 @@ from mlp_bayes_opt_legit import *
 from mlp_bayes_opt_legit_3_layers import *
 from create_pred_set import *
 
-#abs_path = os.path.abspath(__file__)
-#file_dir = os.path.dirname(abs_path)
-#sys.path.append(file_dir)
-
-os.chdir("/home/miller/Documents/GT/Biz Anal/Projy/Data/CSV/")
+os.chdir("") # Insert path to dunhumby data sets
 
 def group_basket_stats(product_list, df_transactions, df_demographic):
 
@@ -115,17 +113,8 @@ def get_transactions_for_hh_within(df_transactions, hh_start_dates, product_list
 
 if __name__ == "__main__":
     
-    coupon_id_list = ["10000089073", "57940011075", "10000089061", "51800000050"]
-    
-    coupon_Id = "51800000050" # Campaign 26 is Type A, would need to remove
-#    coupon_Id = "10000085362" Cant use, Type A campaign
-
-#    coupon_Id = "10000089061" # Low probability added, usable
-
-#    coupon_Id = "57940011075" # Higher than above, still low
-
-#    coupon_Id = "10000089073" # GOOD ONE
-
+#    coupon_id_list = ["10000089073", "57940011075", "10000089061", "51800000050"]
+    coupon_Id = "51800000050" 
     print("Coupon ID: " + coupon_Id)
 
     print("Reading coupon data...")
@@ -171,16 +160,13 @@ if __name__ == "__main__":
     print("Time to engineer features on train set: " + str(end-start))
 
     df_eng_feats_train = prep_train_set(df_eng_feats_train)
-
-    #Optional code to write output to a file
-#    df_eng_feat_train.to_csv("train_set_feat_eng_{}.csv".format(coupon_Id), index=False)
     print("length of feat eng: "+str(len(df_eng_feats_train)))
 
     X, y, _ = split_feats_label(df_eng_feats_train)
         
     scaler = StandardScaler()
     features_std = scaler.fit_transform(X) # Normaliizing features
-#    del X
+    del X
 
     #train the model
     print("Training the model...")
@@ -224,35 +210,6 @@ if __name__ == "__main__":
         
     mean_prob_added = pred_df_w_camp_type['prob_added'].mean()
 
-
-#pred_df_w_camp_type.to_csv("/home/miller/Documents/GT/Biz Anal/Projy/pred_df_10000089073.csv")
-
-#pred_df_w_camp_type[pred_df_w_camp_type.CAMPAIGN == '12']
-#pred_df_w_camp[pred_df_w_camp.CAMPAIGN == '26']
-
-# Only Type B and C
-#usable_campaigns = df_campaign_desc[df_campaign_desc.DESCRIPTION != "TypeA"].CAMPAIGN.tolist()
-
-#
-#df_campaign_desc[df_campaign_desc.CAMPAIGN.apply(lambda x : True if x in campaigns else False)]
-#
-#df_coupon[df_coupon.CAMPAIGN.apply(lambda x : True if x in usable_campaigns else False)]
-#
-#get_campaigns_for_coupon("10000089073", df_coupon)
-
-
-#### HOW TO FIND MOST COMMON PRODUCT ###
-#
-##most_common_prod = 1082185
-#
-#x = df_transactions.groupby("PRODUCT_ID").size().reset_index()
-###
-#x.sort_values(0, inplace=True, ascending = False)
-###
-#z = x.head(200)
-#z.reset_index(inplace=True, drop=True)
-#
-#z.loc[i,'PRODUCT_ID']
 
 
 
