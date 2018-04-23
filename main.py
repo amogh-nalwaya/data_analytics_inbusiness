@@ -19,7 +19,6 @@ sys.path.append(file_dir)
 from feat_eng import *
 from modeling import *
 from mlp_bayes_opt_legit import *
-from mlp_bayes_opt_legit_3_layers import *
 from create_pred_set import *
 
 os.chdir("") # Insert path to dunhumby data sets
