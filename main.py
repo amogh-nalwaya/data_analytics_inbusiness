@@ -9,6 +9,8 @@ import os
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import roc_auc_score
 import time
+import plotly as py
+import plotly.graph_objs as go
 
 abs_path = os.path.abspath(__file__)
 file_dir = os.path.dirname(abs_path)
